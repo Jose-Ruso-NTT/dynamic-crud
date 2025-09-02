@@ -1,9 +1,9 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DynamicForm } from './dynamic-form/dynamic-form';
-import { Question } from './question';
-import { QuestionBase } from './question-base';
+import { DynamicForm } from './components/dynamic-form/dynamic-form';
+import { QuestionBase } from './models/question-base';
+import { Question } from './services/question';
 
 @Component({
   selector: 'app-root',

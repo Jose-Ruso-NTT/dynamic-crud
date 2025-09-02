@@ -1,6 +1,6 @@
 import { Component, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { QuestionBase } from '../question-base';
+import { QuestionBase } from '../../models/question-base';
 
 @Component({
   selector: 'app-question',

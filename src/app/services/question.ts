@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { of } from 'rxjs';
-import { QuestionBase } from './question-base';
-import { DropdownQuestion } from './question-dropdown';
-import { TextboxQuestion } from './question-textbox';
+import { QuestionBase } from '../models/question-base';
+import { DropdownQuestion } from '../models/question-dropdown';
+import { TextboxQuestion } from '../models/question-textbox';
 
 @Injectable()
 export class Question {
