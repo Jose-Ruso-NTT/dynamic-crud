@@ -4,7 +4,25 @@ import { QuestionBase } from '../../models/question-base';
 
 @Component({
   selector: 'app-question',
-  templateUrl: './dynamic-form-question.html',
+  template: `
+    <div [formGroup]="form()">
+      <label [attr.for]="question().key">{{ question().label }}</label>
+      <div>
+        @switch (question().controlType) { @case ('textbox') {
+        <input [formControlName]="question().key" [id]="question().key" [type]="question().type" />
+        } @case ('dropdown') {
+        <select [id]="question().key" [formControlName]="question().key">
+          @for (opt of question().options; track opt) {
+          <option [value]="opt.key">{{ opt.value }}</option>
+          }
+        </select>
+        } }
+      </div>
+      @if (!isValid) {
+      <div class="errorMessage">{{ question().label }} is required</div>
+      }
+    </div>
+  `,
   imports: [ReactiveFormsModule],
 })
 export class DynamicFormQuestion {

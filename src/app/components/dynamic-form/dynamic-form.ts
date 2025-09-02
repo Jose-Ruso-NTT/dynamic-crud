@@ -6,7 +6,24 @@ import { DynamicFormQuestion } from '../dynamic-form-question/dynamic-form-quest
 
 @Component({
   selector: 'app-dynamic-form',
-  templateUrl: './dynamic-form.html',
+  template: `
+    <div>
+      <form (ngSubmit)="onSubmit()" [formGroup]="form()">
+        @for (question of questions(); track question) {
+        <div class="form-row">
+          <app-question [question]="question" [form]="form()" />
+        </div>
+        }
+        <div class="form-row">
+          <button type="submit" [disabled]="!form().valid">Save</button>
+        </div>
+      </form>
+
+      @if (payLoad) {
+      <div class="form-row"><strong>Saved the following values</strong><br />{{ payLoad }}</div>
+      }
+    </div>
+  `,
   providers: [QuestionControl],
   imports: [DynamicFormQuestion, ReactiveFormsModule],
 })
