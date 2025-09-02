@@ -1,7 +1,7 @@
 import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { Observable } from 'rxjs';
-import { DynamicForm } from './components/dynamic-form/dynamic-form';
+import { DynamicForm } from './components/dynamic-form';
 import { QuestionBase } from './models/question-base';
 import { Question } from './services/question';
 
@@ -15,7 +15,6 @@ import { Question } from './services/question';
       <app-dynamic-form [questions]="questions$ | async" />
     </div>
   `,
-  styleUrl: './app.css',
 })
 export class App {
   questions$: Observable<QuestionBase<string>[]> = inject(Question).getQuestions();

@@ -1,8 +1,8 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { QuestionBase } from '../../models/question-base';
-import { QuestionControl } from '../../services/question-control';
-import { DynamicFormQuestion } from '../dynamic-form-question/dynamic-form-question';
+import { QuestionBase } from '../models/question-base';
+import { QuestionControl } from '../services/question-control';
+import { DynamicFormQuestion } from './dynamic-form-question';
 
 @Component({
   selector: 'app-dynamic-form',
