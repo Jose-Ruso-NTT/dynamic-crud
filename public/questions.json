@@ -1,0 +1,59 @@
+[
+  {
+    "controlType": "textbox",
+    "key": "firstName",
+    "label": "First name",
+    "value": "Alex",
+    "required": true,
+    "order": 1,
+    "type": "text"
+  },
+  {
+    "controlType": "dropdown",
+    "key": "favoriteAnimal",
+    "label": "Favorite Animal",
+    "order": 2,
+    "options": [
+      { "key": "Capybara", "value": "Capybara" },
+      { "key": "Zebra", "value": "Zebra" }
+    ]
+  },
+  {
+    "controlType": "dropdown",
+    "key": "user",
+    "label": "Users",
+    "order": 3,
+    "optionsUrl": "https://jsonplaceholder.typicode.com/users",
+    "keyField": "name",
+    "valueField": "name"
+  },
+  {
+    "controlType": "textbox",
+    "key": "birthDate",
+    "label": "Fecha de nacimiento",
+    "type": "date",
+    "value": "1990-01-01",
+    "min": "1900-01-01",
+    "max": "2025-12-31",
+    "order": 4,
+    "required": true
+  },
+  {
+    "controlType": "array",
+    "key": "addresses",
+    "label": "Direcciones",
+    "order": 5,
+    "initialCount": 1,
+    "itemQuestions": [
+      {
+        "controlType": "textbox",
+        "key": "street",
+        "label": "Calle",
+        "required": true,
+        "order": 1,
+        "type": "text"
+      },
+      { "controlType": "textbox", "key": "city", "label": "Ciudad", "order": 2, "type": "text" }
+    ]
+  }
+]
