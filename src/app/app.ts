@@ -1,21 +1,19 @@
-import { AsyncPipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { DynamicForm } from './components/dynamic-form';
-import { QuestionBase } from './models/question-base';
 import { Question } from './services/question';
 
 @Component({
   selector: 'app-root',
-  imports: [AsyncPipe, DynamicForm],
+  imports: [DynamicForm],
   providers: [Question],
   template: `
     <div>
-      <h2>Job Application for Heroes</h2>
-      <app-dynamic-form [questions]="questions$ | async" />
+      <h2>DynamicForm</h2>
+      <app-dynamic-form [questions]="questions()" />
     </div>
   `,
 })
 export class App {
-  questions$: Observable<QuestionBase<string>[]> = inject(Question).getQuestions();
+  questions = toSignal(inject(Question).getQuestions(), { initialValue: [] });
 }
