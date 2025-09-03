@@ -1,40 +1,46 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { QuestionBase } from '../models/question-base';
+import { AnyQuestion } from '../models/question-base';
 import { QuestionControl } from '../services/question-control';
 import { DynamicFormQuestion } from './dynamic-form-question';
 
 @Component({
   selector: 'app-dynamic-form',
+  standalone: true,
   template: `
     <div>
-      <form (ngSubmit)="onSubmit()" [formGroup]="form()">
-        @for (question of questions(); track question) {
+      <form [formGroup]="form()" (ngSubmit)="onSubmit()">
+        @for (question of questions(); track question.key) {
         <div class="form-row">
           <app-question [question]="question" [form]="form()" />
         </div>
         }
         <div class="form-row">
-          <button type="submit" [disabled]="!form().valid">Save</button>
+          <button type="submit" [disabled]="form().invalid">Save</button>
         </div>
       </form>
 
       @if (payLoad) {
-      <div class="form-row"><strong>Saved the following values</strong><br />{{ payLoad }}</div>
+      <div class="form-row">
+        <strong>Saved the following values</strong><br />
+        {{ payLoad }}
+      </div>
       }
     </div>
   `,
-  providers: [QuestionControl],
   imports: [DynamicFormQuestion, ReactiveFormsModule],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  // Si tu servicio ya tiene providedIn:'root', no hace falta providers aquí.
+  // providers: [QuestionControl],
 })
 export class DynamicForm {
   private readonly qcs = inject(QuestionControl);
 
-  readonly questions = input<QuestionBase<string>[] | null>([]);
+  // ✅ ahora el input es ya un AnyQuestion[] (sin nullables)
+  readonly questions = input<AnyQuestion[]>([]);
 
-  readonly form = computed<FormGroup>(() =>
-    this.qcs.toFormGroup(this.questions() as QuestionBase<string>[])
-  );
+  // ✅ el builder ya espera AnyQuestion[]; no hacen falta casts
+  readonly form = computed<FormGroup>(() => this.qcs.toFormGroup(this.questions()));
 
   payLoad = '';
 

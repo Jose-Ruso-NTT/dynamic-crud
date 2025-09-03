@@ -1,4 +1,15 @@
-export type ControlType = 'textbox' | 'dropdown' | 'checkbox' | 'radio' | 'textarea';
+import { DropdownQuestion } from './question-dropdown';
+import { TextboxQuestion } from './question-textbox';
+
+export type ControlType =
+  | 'textbox'
+  | 'dropdown'
+  | 'checkbox'
+  | 'radio'
+  | 'date'
+  | 'textarea'
+  | 'group'
+  | 'array';
 
 export interface QuestionConfig<T> {
   key: string;
@@ -25,4 +36,20 @@ export class QuestionBase<T> {
     this.order = options.order ?? 1;
     this.controlType = options.controlType ?? 'textbox';
   }
+}
+
+// 👇 Adelanta la declaración para poder referenciar AnyQuestion.
+export type AnyQuestion = TextboxQuestion | DropdownQuestion | GroupQuestion | ArrayQuestion;
+
+export interface GroupQuestion extends QuestionBase<unknown> {
+  controlType: 'group';
+  children: AnyQuestion[];
+}
+
+export interface ArrayQuestion extends QuestionBase<unknown> {
+  controlType: 'array';
+  itemQuestions: AnyQuestion[];
+  initialItems?: unknown[];
+  minItems?: number;
+  maxItems?: number;
 }
