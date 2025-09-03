@@ -17,29 +17,30 @@ type AnyFormGroup = FormGroup<AnyGroupControls>;
       <label [attr.for]="question().key">{{ question().label }}</label>
 
       <div>
-        @switch (question().controlType) { @case ('textbox') {
+        @switch (question().controlType) {
+        <!--  -->
+        @case ('textbox') {
         <input
           [formControlName]="textbox().key"
           [id]="textbox().key"
           [type]="textbox().type || 'text'"
           [attr.min]="textbox().min ?? null"
           [attr.max]="textbox().max ?? null"
-          [attr.data-testid]="textbox().key"
         />
-        } @case ('dropdown') {
-        <select
-          [id]="dropdown().key"
-          [formControlName]="dropdown().key"
-          [attr.data-testid]="dropdown().key"
-        >
-          @for (opt of (dropdown().options$ | async); track opt) {
+        }
+        <!--  -->
+        @case ('dropdown') {
+        <select [id]="dropdown().key" [formControlName]="dropdown().key">
+          @for (opt of (dropdown().options$ | async); track opt.key) {
           <option [value]="opt.key">{{ opt.value }}</option>
           }
         </select>
-        } @case ('array') {
-        <div [formArrayName]="arrayQ().key" data-testid="array-root">
+        }
+        <!--  -->
+        @case ('array') {
+        <div [formArrayName]="arrayQ().key">
           @for (ctrl of arrayCtrl.controls; track i; let i = $index) {
-          <fieldset [formGroupName]="i" data-testid="array-item">
+          <fieldset [formGroupName]="i">
             @for (child of arrayQ().itemQuestions; track child.key) {
             <app-question [question]="child" [form]="groupAt(i)" />
             }

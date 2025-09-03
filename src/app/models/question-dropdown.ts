@@ -1,40 +1,34 @@
 // models/question-dropdown.ts
-import { Observable, of } from 'rxjs';
-import { catchError, shareReplay } from 'rxjs/operators';
-import { ControlType, QuestionBase, QuestionConfig } from './question-base';
+import { Observable, of, shareReplay } from 'rxjs';
+import { QuestionBase, QuestionConfig } from './question-base';
 import { Option } from './types';
 
-type StaticOptionsConfig = {
-  options: Option[];
-  optionsLoader?: never;
-};
-
-type DynamicOptionsConfig = {
-  options?: never;
-  optionsLoader: () => Observable<Option[]>;
-};
-
-export type DropdownQuestionConfig = (StaticOptionsConfig | DynamicOptionsConfig) &
-  QuestionConfig<string>;
+export interface DropdownConfig extends QuestionConfig<string> {
+  optionsLoader?: () => Observable<Option[]>; // no dependiente
+  options?: Option[]; // estático
+  dependsOn?: string; // key padre
+  resetOnChange?: boolean; // default true
+  loadFor?: (depValue: string | null | undefined) => Observable<Option[]>; // dependiente
+}
 
 export class DropdownQuestion extends QuestionBase<string> {
-  override controlType: ControlType = 'dropdown';
-  readonly options$: Observable<Option[]>;
+  override controlType: 'dropdown' = 'dropdown';
 
-  constructor(cfg: DropdownQuestionConfig) {
+  options$: Observable<Option[]>;
+  dependsOn?: string;
+  resetOnChange: boolean;
+  loadFor?: (depValue: string | null | undefined) => Observable<Option[]>;
+
+  constructor(cfg: DropdownConfig) {
     super(cfg);
+    this.dependsOn = cfg.dependsOn;
+    this.resetOnChange = cfg.resetOnChange ?? true;
+    this.loadFor = cfg.loadFor;
 
-    if (cfg.options) {
+    if (cfg.optionsLoader) {
+      this.options$ = cfg.optionsLoader().pipe(shareReplay(1));
+    } else if (cfg.options) {
       this.options$ = of(cfg.options);
-    } else if (cfg.optionsLoader) {
-      this.options$ = cfg.optionsLoader().pipe(
-        catchError((err) => {
-          console.error(`[DropdownQuestion:${this.key}] Error cargando opciones`, err);
-          return of([] as Option[]);
-        }),
-        // Evita llamadas repetidas si hay múltiples suscripciones
-        shareReplay({ bufferSize: 1, refCount: false })
-      );
     } else {
       this.options$ = of([]);
     }

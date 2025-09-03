@@ -40,8 +40,13 @@ export class DynamicForm {
   readonly questions = input<AnyQuestion[]>([]);
 
   // ✅ el builder ya espera AnyQuestion[]; no hacen falta casts
-  readonly form = computed<FormGroup>(() => this.qcs.toFormGroup(this.questions()));
+  // readonly form = computed<FormGroup>(() => this.qcs.toFormGroup(this.questions()));
 
+  readonly form = computed<FormGroup>(() => {
+    const fg = this.qcs.toFormGroup(this.questions());
+    this.qcs.wireDependencies(fg, this.questions()); // 👈 aquí
+    return fg;
+  });
   payLoad = '';
 
   onSubmit() {

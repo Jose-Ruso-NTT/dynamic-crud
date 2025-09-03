@@ -1,7 +1,7 @@
 // services/question.service.ts
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { map, Observable, of } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { AnyQuestion, ArrayQuestion, GroupQuestion } from '../models/question-base';
 import { DropdownQuestion } from '../models/question-dropdown';
 import { ArrayDTO, DropdownDTO, GroupDTO, QuestionDTO, TextboxDTO } from '../models/question-dto';
@@ -143,35 +143,78 @@ export class Question {
   }
 
   private mapDropdown(dto: DropdownDTO): DropdownQuestion {
-    if (dto.options && dto.options.length) {
+    // Caso 1: opciones estáticas
+    if (dto.options?.length) {
       return new DropdownQuestion({
         key: dto.key,
         label: dto.label,
-        order: dto.order,
         required: dto.required,
-        optionsLoader: () => of(dto.options!),
+        order: dto.order,
+        options: dto.options,
       });
     }
 
-    // optionsUrl: construye optionsLoader con HttpClient
-    const url = dto.optionsUrl!;
-    const keyField = dto.keyField ?? 'id';
-    const valueField = dto.valueField ?? 'name';
+    // Caso 2: no dependiente, con optionsUrl
+    if (!dto.dependsOn && dto.optionsUrl) {
+      const keyField = dto.keyField ?? 'id';
+      const valueField = dto.valueField ?? 'name';
+      return new DropdownQuestion({
+        key: dto.key,
+        label: dto.label,
+        required: dto.required,
+        order: dto.order,
+        optionsLoader: () =>
+          this.http.get<any[]>(dto.optionsUrl!).pipe(
+            map((arr) =>
+              arr.map<Option>((it) => ({
+                key: String(it[keyField]),
+                value: String(it[valueField]),
+              }))
+            )
+          ),
+      });
+    }
 
+    // Caso 3: dependiente con optionsUrlTemplate y {value}
+    if (dto.dependsOn && dto.optionsUrlTemplate) {
+      const keyField = dto.keyField ?? 'id';
+      const valueField = dto.valueField ?? 'name';
+      const template = dto.optionsUrlTemplate;
+
+      return new DropdownQuestion({
+        key: dto.key,
+        label: dto.label,
+        required: dto.required,
+        order: dto.order,
+        dependsOn: dto.dependsOn,
+        resetOnChange: dto.resetOnChange ?? true,
+        loadFor: (depValue) => {
+          if (!depValue) return of<Option[]>([]);
+          const url = template.includes('{value}')
+            ? template.replace('{value}', encodeURIComponent(String(depValue)))
+            : template; // sin placeholder: no filtra
+
+          return this.http.get<any[]>(url).pipe(
+            map((arr) =>
+              arr.map<Option>((it) => ({
+                key: String(it[keyField]),
+                value: String(it[valueField]),
+              }))
+            ),
+            catchError(() => of([]))
+          );
+        },
+        options: [], // inicial; se sustituye por wireDependencies
+      });
+    }
+
+    // Fallback: sin datos
     return new DropdownQuestion({
       key: dto.key,
       label: dto.label,
-      order: dto.order,
       required: dto.required,
-      optionsLoader: () =>
-        this.http.get<any[]>(url).pipe(
-          map((arr) =>
-            arr.map<Option>((it) => ({
-              key: String(it[keyField]),
-              value: String(it[valueField]),
-            }))
-          )
-        ),
+      order: dto.order,
+      options: [],
     });
   }
 

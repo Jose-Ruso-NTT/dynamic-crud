@@ -8,7 +8,9 @@ import {
   ValidatorFn,
   Validators,
 } from '@angular/forms';
+import { distinctUntilChanged, of, shareReplay, startWith, switchMap, tap } from 'rxjs';
 import { AnyQuestion, ArrayQuestion, GroupQuestion } from '../models/question-base';
+import { DropdownQuestion } from '../models/question-dropdown';
 import { TextboxQuestion } from '../models/question-textbox';
 
 type AnyGroupControls = Record<string, AbstractControl<any, any>>;
@@ -58,5 +60,44 @@ export class QuestionControl {
         return new FormControl<any>(q.value ?? null, validators);
       }
     }
+  }
+
+  wireDependencies(form: FormGroup, questions: AnyQuestion[]): void {
+    for (const q of this.flatten(questions)) {
+      if (q.controlType !== 'dropdown') continue;
+      const dq = q as DropdownQuestion;
+      if (!dq.dependsOn || !dq.loadFor) continue;
+
+      const parent = form.get(dq.dependsOn);
+      const child = form.get(dq.key);
+      if (!parent || !child) continue;
+
+      // options$ depende del valor del padre (incluye valor inicial)
+      dq.options$ = parent.valueChanges.pipe(
+        startWith(parent.value),
+        distinctUntilChanged(),
+        tap(() => {
+          // reset al cambiar el padre
+          if (dq.resetOnChange) child.reset();
+        }),
+        tap((val) => {
+          // enable/disable del hijo
+          if (val == null || val === '') child.disable({ emitEvent: false });
+          else child.enable({ emitEvent: false });
+        }),
+        switchMap((val) => (val == null || val === '' ? of([]) : dq.loadFor!(val))),
+        shareReplay({ bufferSize: 1, refCount: true })
+      );
+    }
+  }
+
+  private flatten(questions: AnyQuestion[]): AnyQuestion[] {
+    const acc: AnyQuestion[] = [];
+    for (const q of questions) {
+      acc.push(q);
+      if (q.controlType === 'group') acc.push(...this.flatten(q.children));
+      else if (q.controlType === 'array') acc.push(...this.flatten(q.itemQuestions));
+    }
+    return acc;
   }
 }
