@@ -6,48 +6,60 @@ import { DynamicFormQuestion } from './dynamic-form-question';
 
 @Component({
   selector: 'app-dynamic-form',
-  standalone: true,
-  template: `
-    <div>
-      <form [formGroup]="form()" (ngSubmit)="onSubmit()">
-        @for (question of questions(); track question.key) {
-        <div class="form-row">
-          <app-question [question]="question" [form]="form()" />
-        </div>
-        }
-        <div class="form-row">
-          <button type="submit" [disabled]="form().invalid">Save</button>
-        </div>
-      </form>
-
-      @if (payLoad) {
-      <div class="form-row">
-        <strong>Saved the following values</strong><br />
-        {{ payLoad }}
-      </div>
-      }
-    </div>
-  `,
   imports: [DynamicFormQuestion, ReactiveFormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  // Si tu servicio ya tiene providedIn:'root', no hace falta providers aquí.
-  // providers: [QuestionControl],
+  template: `
+    <form [formGroup]="form()" (ngSubmit)="onSubmit()" class="df" data-testid="dynamic-form">
+      @for (question of questions(); track question.key) {
+      <div app-question [question]="question" [form]="form()" data-testid="question-item"></div>
+      }
+
+      <div class="df__actions">
+        <button type="submit" [disabled]="form().invalid">Save</button>
+      </div>
+    </form>
+
+    @if (payLoad) {
+    <strong>Saved the following values</strong><br />
+    {{ payLoad }}
+    }
+  `,
+  styles: [
+    `
+      .df {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      .df__actions {
+        flex: 1 1 100%;
+        display: flex;
+        margin-top: 0.25rem;
+      }
+    `,
+  ],
 })
 export class DynamicForm {
   private readonly qcs = inject(QuestionControl);
 
-  // ✅ ahora el input es ya un AnyQuestion[] (sin nullables)
   readonly questions = input<AnyQuestion[]>([]);
-
-  // ✅ el builder ya espera AnyQuestion[]; no hacen falta casts
-  // readonly form = computed<FormGroup>(() => this.qcs.toFormGroup(this.questions()));
 
   readonly form = computed<FormGroup>(() => {
     const fg = this.qcs.toFormGroup(this.questions());
-    this.qcs.wireDependencies(fg, this.questions()); // 👈 aquí
+    this.qcs.wireDependencies(fg, this.questions());
     return fg;
   });
+
   payLoad = '';
+
+  populateTable() {
+    this.form().setValue({
+      firstName: 'Nancy',
+      favoriteAnimal: 'Capybara',
+      birthDate: '2025-09-04',
+      user: 'Leanne Graham',
+    });
+  }
 
   onSubmit() {
     this.payLoad = JSON.stringify(this.form().getRawValue());

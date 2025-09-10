@@ -10,10 +10,6 @@ import { Question } from './services/question';
   template: `
     <div>
       <h2>DynamicForm</h2>
-      <!-- <app-dynamic-form [questions]="questions()" /> -->
-
-      <hr />
-
       <app-dynamic-form [questions]="questionsJson()" />
     </div>
   `,
@@ -21,7 +17,6 @@ import { Question } from './services/question';
 export class App {
   private qs = inject(Question);
 
-  // questions = toSignal(inject(Question).getQuestions(), { initialValue: [] });
   questionsJson = toSignal(this.qs.getQuestionsFromJson('questions.json'), {
     initialValue: [],
   });
